@@ -34,6 +34,7 @@
       kubernetes.core.helm:
         name: kube-prometheus-stack
         chart_ref: prometheus-community/kube-prometheus-stack
+        chart_version: "{{ kube_prometheus_stack_version }}"
         release_namespace: monitoring
         create_namespace: true
         values_files:
@@ -108,6 +109,7 @@
       community.kubernetes.helm:
         name: minecraft
         chart_ref: itzg/minecraft
+        chart_version: "{{ minecraft_version }}"
         release_namespace: minecraft
         create_namespace: true
         values: "{{ lookup('file', '../k8s/helm/minecraft.values.yaml') | from_yaml }}"
@@ -116,6 +118,7 @@
       community.kubernetes.helm:
         name: rcon-web
         chart_ref: /Users/fernandorodriguez/Code/minecraft-server-charts/charts/rcon-web-admin
+        chart_version: "{{ rcon_web_admin_version }}"
         release_namespace: minecraft
         create_namespace: true
         values: "{{ lookup('file', '../k8s/helm/rcon-web.values.yaml') | from_yaml }}"

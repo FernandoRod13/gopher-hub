@@ -1,0 +1,11 @@
+apiVersion: v2
+name: rcon-web-admin
+description: RCON Web UI for managing game servers
+type: application
+version: 1.2.1
+appVersion: "0.14.1-1"
+keywords:
+  - game
+  - rcon
+sources:
+  - https://github.com/itzg/minecraft-server-charts

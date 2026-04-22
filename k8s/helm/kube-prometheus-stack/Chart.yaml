@@ -1,0 +1,11 @@
+apiVersion: v2
+name: kube-prometheus-stack
+description: kube-prometheus-stack collection
+type: application
+version: 82.8.0
+appVersion: 0.82.0
+keywords:
+  - prometheus
+  - monitoring
+sources:
+  - https://github.com/prometheus-community/helm-charts
