@@ -1,0 +1,19 @@
+# Test values for rcon-web-admin websocket env var CI test
+# This tests that websocket URL env vars are set when using LoadBalancer (no ingress)
+
+service:
+  type: LoadBalancer
+  httpPort: 8080
+
+rconWeb:
+  password: testpassword
+  # Empty values to avoid needing a real Minecraft server
+  rconHost: ""
+  rconPort: 0
+
+ingress:
+  enabled: false
+
+# Disable persistence for faster CI testing
+persistence:
+  enabled: false

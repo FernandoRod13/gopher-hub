@@ -24,7 +24,7 @@
     value: "1"
     state: present
     reload: true
-  when: ansible_all_ipv6_addresses
+  when: ansible_all_ipv6_addresses | length > 0
 
 - name: Populate service facts
   ansible.builtin.service_facts:
@@ -65,12 +65,31 @@
         src: '{{ item }}'
       loop: "{{ (cluster_cidr + ',' + service_cidr) | split(',') }}"
 
-- name: Allow Firewalld Exceptions
+- name: Allow ICMP traffic for health checks
+  ansible.posix.firewalld:
+    rich_rule: 'rule protocol value="icmp" accept'
+    zone: internal
+    state: enabled
+    permanent: true
+    immediate: true
+  when:
+    - ansible_facts.services['firewalld.service'] is defined
+    - ansible_facts.services['firewalld.service'].state == 'running'
+    - enable_icmp | default(false)
+
+- name: Reload firewalld to apply changes
+  ansible.builtin.command: firewall-cmd --reload
+  when:
+    - ansible_facts.services['firewalld.service'] is defined
+    - ansible_facts.services['firewalld.service'].state == 'running'
+
+- name: Allow Firewalld Exceptions for Cilium, Kubernetes API, and Kubelet Metrics
   when:
     - ansible_facts.services['firewalld.service'] is defined
     - ansible_facts.services['firewalld.service'].state == 'running'
   block:
-    - name: If firewalld enabled, open api port
+    # Keep Kubernetes API port open
+    - name: If firewalld enabled, open Kubernetes API port
       ansible.posix.firewalld:
         port: "{{ api_port }}/tcp"
         zone: internal
@@ -78,54 +97,241 @@
         permanent: true
         immediate: true
 
-    - name: If firewalld enabled, open etcd ports
-      when: groups[server_group] | length > 1
+    # Open kubelet metrics port
+    - name: If firewalld enabled, open kubelet metrics port
       ansible.posix.firewalld:
-        port: "2379-2381/tcp"
+        port: "10250/tcp"
         zone: internal
         state: enabled
         permanent: true
         immediate: true
 
-    - name: If firewalld enabled, open inter-node ports
+    # Master Node Rules
+    - name: Open etcd ports for master nodes
       ansible.posix.firewalld:
-        port: "{{ item }}"
+        port: "2379-2380/tcp"
         zone: internal
         state: enabled
         permanent: true
         immediate: true
-      with_items:
-        - 5001/tcp   # Spegel (Embedded distributed registry)
-        - 8472/udp   # Flannel VXLAN
-        - 10250/tcp  # Kubelet metrics
-        - 51820/udp  # Flannel Wireguard (IPv4)
-        - 51821/udp  # Flannel Wireguard (IPv6)
 
-    - name: If firewalld enabled, allow node CIDRs
+    - name: Open VXLAN overlay for master nodes
       ansible.posix.firewalld:
-        source: "{{ item }}"
+        port: "8472/udp"
         zone: internal
         state: enabled
         permanent: true
         immediate: true
-      loop: >-
-        {{
-          (
-            groups[server_group] | default([])
-            + groups[agent_group] | default([])
-          )
-          | map('extract', hostvars, ['ansible_default_ipv4', 'address'])
-          | flatten | unique | list
-        }}
 
-    - name: If firewalld enabled, allow default CIDRs
+    - name: Open health check ports for master nodes
       ansible.posix.firewalld:
-        source: "{{ item }}"
-        zone: trusted
+        port: "4240/tcp"
+        zone: internal
         state: enabled
         permanent: true
         immediate: true
-      loop: "{{ (cluster_cidr + ',' + service_cidr) | split(',') }}"
+
+    - name: Allow ICMP for health checks on master nodes
+      ansible.posix.firewalld:
+        rich_rule: 'rule protocol value="icmp" accept'
+        zone: internal
+        state: enabled
+        permanent: true
+        immediate: true
+      when: enable_icmp | default(false)
+
+    # Worker Node Rules
+    - name: Open VXLAN overlay for worker nodes
+      ansible.posix.firewalld:
+        port: "8472/udp"
+        zone: internal
+        state: enabled
+        permanent: true
+        immediate: true
+
+    - name: Open health check ports for worker nodes
+      ansible.posix.firewalld:
+        port: "4240/tcp"
+        zone: internal
+        state: enabled
+        permanent: true
+        immediate: true
+
+    - name: Allow ICMP for health checks on worker nodes
+      ansible.posix.firewalld:
+        rich_rule: 'rule protocol value="icmp" accept'
+        zone: internal
+        state: enabled
+        permanent: true
+        immediate: true
+      when: enable_icmp | default(false)
+
+    # Egress Rules
+    - name: Allow egress for health checks
+      ansible.posix.firewalld:
+        port: "4240/tcp"
+        zone: internal
+        state: enabled
+        permanent: true
+        immediate: true
+
+    - name: Allow egress for etcd access
+      ansible.posix.firewalld:
+        port: "2379-2380/tcp"
+        zone: internal
+        state: enabled
+        permanent: true
+        immediate: true
+
+    - name: Allow ICMP egress for health checks
+      ansible.posix.firewalld:
+        rich_rule: 'rule protocol value="icmp" accept'
+        zone: internal
+        state: enabled
+        permanent: true
+        immediate: true
+      when: enable_icmp | default(false)
+
+- name: Allow additional Cilium-related ports
+  when:
+    - ansible_facts.services['firewalld.service'] is defined
+    - ansible_facts.services['firewalld.service'].state == 'running'
+  block:
+    - name: Open Hubble server port
+      ansible.posix.firewalld:
+        port: "4244/tcp"
+        zone: internal
+        state: enabled
+        permanent: true
+        immediate: true
+
+    - name: Open Hubble Relay port
+      ansible.posix.firewalld:
+        port: "4245/tcp"
+        zone: internal
+        state: enabled
+        permanent: true
+        immediate: true
+
+    - name: Open Mutual Authentication port
+      ansible.posix.firewalld:
+        port: "4250/tcp"
+        zone: internal
+        state: enabled
+        permanent: true
+        immediate: true
+
+    - name: Open Spire Agent health check port
+      ansible.posix.firewalld:
+        port: "4251/tcp"
+        zone: internal
+        state: enabled
+        permanent: true
+        immediate: true
+
+    - name: Open cilium-agent pprof server port
+      ansible.posix.firewalld:
+        port: "6060/tcp"
+        zone: internal
+        state: enabled
+        permanent: true
+        immediate: true
+
+    - name: Open cilium-operator pprof server port
+      ansible.posix.firewalld:
+        port: "6061/tcp"
+        zone: internal
+        state: enabled
+        permanent: true
+        immediate: true
+
+    - name: Open Hubble Relay pprof server port
+      ansible.posix.firewalld:
+        port: "6062/tcp"
+        zone: internal
+        state: enabled
+        permanent: true
+        immediate: true
+
+    - name: Open cilium-envoy health listener port
+      ansible.posix.firewalld:
+        port: "9878/tcp"
+        zone: internal
+        state: enabled
+        permanent: true
+        immediate: true
+
+    - name: Open cilium-agent health status API port
+      ansible.posix.firewalld:
+        port: "9879/tcp"
+        zone: internal
+        state: enabled
+        permanent: true
+        immediate: true
+
+    - name: Open cilium-agent gops server port
+      ansible.posix.firewalld:
+        port: "9890/tcp"
+        zone: internal
+        state: enabled
+        permanent: true
+        immediate: true
+
+    - name: Open operator gops server port
+      ansible.posix.firewalld:
+        port: "9891/tcp"
+        zone: internal
+        state: enabled
+        permanent: true
+        immediate: true
+
+    - name: Open Hubble Relay gops server port
+      ansible.posix.firewalld:
+        port: "9893/tcp"
+        zone: internal
+        state: enabled
+        permanent: true
+        immediate: true
+
+    - name: Open cilium-envoy Admin API port
+      ansible.posix.firewalld:
+        port: "9901/tcp"
+        zone: internal
+        state: enabled
+        permanent: true
+        immediate: true
+
+    - name: Open cilium-agent Prometheus metrics port
+      ansible.posix.firewalld:
+        port: "9962/tcp"
+        zone: internal
+        state: enabled
+        permanent: true
+        immediate: true
+
+    - name: Open cilium-operator Prometheus metrics port
+      ansible.posix.firewalld:
+        port: "9963/tcp"
+        zone: internal
+        state: enabled
+        permanent: true
+        immediate: true
+
+    - name: Open cilium-envoy Prometheus metrics port
+      ansible.posix.firewalld:
+        port: "9964/tcp"
+        zone: internal
+        state: enabled
+        permanent: true
+        immediate: true
+
+    - name: Open WireGuard encryption tunnel endpoint port
+      ansible.posix.firewalld:
+        port: "51871/udp"
+        zone: internal
+        state: enabled
+        permanent: true
+        immediate: true
 
 - name: Add br_netfilter to /etc/modules-load.d/
   ansible.builtin.copy:
@@ -252,3 +458,22 @@
         content: "{{ registries_config_yaml }}"
         dest: "/etc/rancher/k3s/registries.yaml"
         mode: "0644"
+
+- name: Ensure chrony is installed
+  ansible.builtin.package:
+    name: chrony
+    state: present
+
+- name: Ensure chronyd is enabled and running
+  ansible.builtin.service:
+    name: chronyd
+    state: started
+    enabled: true
+
+- name: Wait for system clock sync
+  ansible.builtin.shell: timedatectl show -p NTPSynchronized --value
+  register: ntp_status
+  retries: 10
+  delay: 5
+  until: ntp_status.stdout == "yes"
+  changed_when: false

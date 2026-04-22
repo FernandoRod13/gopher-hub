@@ -20,7 +20,15 @@ on processor architectures:
 
 ## System requirements
 
-The control node **must** have Ansible 8.0+ (ansible-core 2.15+)
+The control node **must** have:
+- Ansible 8.0+ (ansible-core 2.15+)
+- Helm
+- External collections: `community.general`, `ansible.posix`, `community.kubernetes`
+
+Install collections with:
+```bash
+ansible-galaxy collection install -r collections/requirements.yml
+```
 
 All managed nodes in inventory must have:
 - Passwordless SSH access
@@ -62,6 +70,8 @@ Start provisioning of the cluster using the following command:
 ```bash
 ansible-playbook playbooks/site.yml -i inventory.yml
 ```
+
+> **Note**: `site.yml` also installs kube-prometheus-stack, Cilium CNI, and a Minecraft server via Helm. Set `cilium_version` in your inventory (e.g., `cilium_version: "1.18.0"`). If you only want the K3s cluster, use `playbooks/reset.yml` after to remove extras, or edit the playbook.
 
 ### Using an external database
 

@@ -1,0 +1,21 @@
+# filepath: /Users/fernandorodriguez/Code/gopher-hub/k8s/cilium/kustomization.yaml.j2
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ./manifests/announce.yaml
+  - ./manifests/ip-pool.yaml
+  - ./manifests/grafana-cilium-dashboard.yaml
+  - ./manifests/grafana-cilium-operator-dashboard.yaml
+  - ./manifests/grafana-hubble-dashboard.yaml
+  - ./manifests/grafana-hubble-l7-http-metrics-by-workload.yaml
+
+helmCharts:
+  - name: cilium
+    repo: https://helm.cilium.io
+    version: {{ cilium_version }}
+    releaseName: "cilium"
+    includeCRDs: true
+    namespace: kube-system
+    valuesFile: cilium.values.yaml
+    

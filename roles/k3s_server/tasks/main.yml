@@ -276,7 +276,6 @@
 - name: Setup kubectl for user
   when: user_kubectl
   block:
-
     - name: Create directory .kube
       ansible.builtin.file:
         path: ~{{ ansible_user }}/.kube

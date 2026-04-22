@@ -4,3 +4,7 @@ venv
 .vagrant
 inventory.yml
 playbook/debug.yml
+k8s/cilium/charts/**
+k8s/cilium/cilium.values.yaml
+k8s/cilium/kustomization.yaml
+k8s/kube-prometheus-stack/charts/**

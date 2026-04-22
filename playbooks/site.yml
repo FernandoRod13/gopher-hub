@@ -19,3 +19,104 @@
   become: true
   roles:
     - role: k3s_agent
+    
+- name: Install Kube Prometheus Stack
+  hosts: 127.0.0.1
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Add kube-prometheus-stack Helm repo
+      community.kubernetes.helm_repository:
+        name: prometheus-community
+        repo_url: https://prometheus-community.github.io/helm-charts
+        state: present
+    - name: Install Kube Prometheus Stack using Helm
+      kubernetes.core.helm:
+        name: kube-prometheus-stack
+        chart_ref: prometheus-community/kube-prometheus-stack
+        release_namespace: monitoring
+        create_namespace: true
+        values_files:
+        - ../k8s/helm/kube-prometheus-stack.values.yaml
+        state: present
+        binary_path: /opt/homebrew/bin/helm
+
+- name: Install Cilium
+  hosts: 127.0.0.1
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Add Cilium Helm repo
+      community.kubernetes.helm_repository:
+        name: cilium
+        repo_url: https://helm.cilium.io/
+        state: present
+
+    - name: Set cilium_chart_values from k3s_cluster
+      set_fact:
+        cilium_version: "{{ hostvars[groups['k3s_cluster'][0]].cilium_version }}"
+        k8sServiceHost: "{{ hostvars[groups['server'][0]]['ansible_host'] | default(groups['server'][0]) }}"
+    
+    - name: Generate cilium.values.yaml for Cilium
+      template:
+        src: "{{ playbook_dir }}/../k8s/cilium/cilium.values.yaml.j2"
+        dest: "{{ playbook_dir }}/../k8s/cilium/cilium.values.yaml"
+
+    - name: Generate kustomization.yaml for Cilium
+      template:
+        src: "{{ playbook_dir }}/../k8s/cilium/kustomization.yaml.j2"
+        dest: "{{ playbook_dir }}/../k8s/cilium/kustomization.yaml"
+    
+    - name: Ensure monitoring namespace exists in k3s cluster
+      kubernetes.core.k8s:
+        definition:
+          apiVersion: v1
+          kind: Namespace
+          metadata:
+            name: monitoring
+        state: present
+
+    - name: Apply Cilium manifests
+      kubernetes.core.k8s:
+        definition: "{{ lookup('kubernetes.core.kustomize', dir=playbook_dir + '/../k8s/cilium/', enable_helm=True) }}"
+        state: present
+
+- name: Install Minecraft Server
+  hosts: 127.0.0.1
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Add Minecraft Helm repo
+      community.kubernetes.helm_repository:
+        name: itzg
+        repo_url: https://itzg.github.io/minecraft-server-charts
+        state: present
+    - name: Create RCON credentials secret
+      kubernetes.core.k8s:
+        definition:
+          apiVersion: v1
+          kind: Secret
+          metadata:
+            name: minecraft-rcon-creds
+            namespace: minecraft
+          type: Opaque
+          stringData:
+            rcon-password: "{{ minecraft_rcon_password }}"
+            web-admin-password: "{{ minecraft_web_password }}"
+        state: present
+    - name: Install Minecraft Server using Helm
+      community.kubernetes.helm:
+        name: minecraft
+        chart_ref: itzg/minecraft
+        release_namespace: minecraft
+        create_namespace: true
+        values: "{{ lookup('file', '../k8s/helm/minecraft.values.yaml') | from_yaml }}"
+        state: present
+    - name: Install RCON Web Admin using Helm
+      community.kubernetes.helm:
+        name: rcon-web
+        chart_ref: /Users/fernandorodriguez/Code/minecraft-server-charts/charts/rcon-web-admin
+        release_namespace: minecraft
+        create_namespace: true
+        values: "{{ lookup('file', '../k8s/helm/rcon-web.values.yaml') | from_yaml }}"
+        state: present

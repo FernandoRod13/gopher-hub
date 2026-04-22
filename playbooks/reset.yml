@@ -11,7 +11,7 @@
     - name: Run K3s Uninstall script [agent]
       when: "'agent' in group_names"
       ansible.builtin.command:
-        cmd: k3s-agent-uninstall.sh
+        cmd: /usr/local/bin/k3s-uninstall.sh
         removes: /var/lib/rancher/k3s/*
     - name: Remove user kubeconfig
       ansible.builtin.file:
