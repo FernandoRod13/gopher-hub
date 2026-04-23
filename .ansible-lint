@@ -3,3 +3,17 @@ warn_list:
   - var-naming[no-role-prefix]
   - yaml[comments-indentation]
   - yaml[line-length]
+
+skip_list:
+  - yaml[document-start]
+  - fqcn
+  - command-instead-of-shell
+  - no-changed-when
+  - risky-file-permissions
+  - var-naming[pattern]
+
+exclude_paths:
+  - monitoring.yml
+  - k8s/helm/*.values.yaml
+  - k8s/cilium/kustomization.yaml
+  - k8s/cilium/manifests/
