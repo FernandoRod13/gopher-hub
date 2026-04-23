@@ -11,6 +11,7 @@ ignore: |
   monitoring.yml
   docs/
   darwin-arm64/
+  .ansible/
 
 rules:
   line-length: {max: 180, level: warning}
