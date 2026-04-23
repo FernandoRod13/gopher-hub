@@ -58,7 +58,7 @@
 
 - name: Set the full token as a fact
   ansible.builtin.set_fact:
-    full_token: "{{ server_token.content | b64decode | trim}}"
+    full_token: "{{ server_token.content | b64decode | trim }}"
 
 - name: Delete any existing token from the environment if different from the new one
   ansible.builtin.lineinfile:
