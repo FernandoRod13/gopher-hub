@@ -20,7 +20,7 @@ jobs:
       - name: Build artifact.
         run: ansible-galaxy collection build
       - name: Upload artifact.
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: galaxy-collection
           path: k3s-orchestration-*.tar.gz
