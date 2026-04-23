@@ -56,7 +56,7 @@
     - name: Set cilium_chart_values from k3s_cluster
       set_fact:
         cilium_version: "{{ hostvars[groups['k3s_cluster'][0]].cilium_version }}"
-        k8sServiceHost: "{{ hostvars[groups['server'][0]]['ansible_host'] | default(groups['server'][0]) }}"
+        k8s_service_host: "{{ hostvars[groups['server'][0]]['ansible_host'] | default(groups['server'][0]) }}"
 
     - name: Generate cilium.values.yaml for Cilium
       template:
