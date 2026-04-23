@@ -1,3 +1,4 @@
+---
 apiVersion: v2
 name: rcon-web-admin
 description: RCON Web UI for managing game servers

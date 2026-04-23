@@ -1,17 +1,21 @@
 ---
 extends: default
 
+ignore: |
+  k8s/cilium/charts/
+  k8s/helm/kube-prometheus-stack.values.yaml
+  k8s/helm/minecraft.values.yaml
+  k8s/helm/rcon-web.values.yaml
+  k8s/cilium/manifests/
+  k8s/cilium/cilium.values.yaml
+  monitoring.yml
+  docs/
+  darwin-arm64/
+
 rules:
-  line-length:
-    max: 180
-    level: warning
-  truthy:
-    allowed-values: ["true", "false"]
-  braces:
-    max-spaces-inside: 1
-  octal-values:
-    forbid-implicit-octal: true
-    forbid-explicit-octal: true
-  comments:
-    min-spaces-from-content: 1
-  comments-indentation: false
+  line-length: {max: 180, level: warning}
+  truthy: {level: error}
+  indentation: {level: error}
+  trailing-spaces: {level: error}
+  new-line-at-end-of-file: {level: error}
+  document-start: {level: warning}
