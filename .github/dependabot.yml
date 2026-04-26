@@ -11,7 +11,8 @@ updates:
     assignees:
       - "FernandoRod13"
   - package-ecosystem: "helm"
-    directory: "/k8s/helm/**"
+    directories:
+      - "/k8s/helm/*"
     schedule:
       interval: "weekly"
     labels:
