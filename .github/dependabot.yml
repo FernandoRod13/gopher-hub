@@ -12,7 +12,7 @@ updates:
       - "FernandoRod13"
   - package-ecosystem: "helm"
     directories:
-    - "/k8s/helm/*"
+      - "/k8s/helm/*"
     schedule:
       interval: "weekly"
     labels:
