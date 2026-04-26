@@ -9,4 +9,4 @@ keywords:
   - prometheus
   - monitoring
 sources:
-  - https://github.com/prometheus-community/helm-charts
+  - https://prometheus-community.github.com/helm-charts

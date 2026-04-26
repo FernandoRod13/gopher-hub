@@ -9,4 +9,4 @@ keywords:
   - game
   - minecraft
 sources:
-  - https://github.com/itzg/minecraft-server-charts k8s/helm/rcon-web-admin/Chart.yaml k8s/helm/kube-prometheus-stack/Chart.yaml .github/dependabot.yml roles/k3s_server/tasks/main.yml roles/prereq/tasks/main.yml playbooks/site.yml inventory.yml k8s/cilium/kustomization.yaml
+  - https://itzg.github.io/minecraft-server-charts/
