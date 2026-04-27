@@ -23,7 +23,7 @@ jobs:
       - name: Run ansible-lint.
         run: ansible-lint
       - name: Set up Helm.
-        uses: azure/setup-helm@v4
+        uses: azure/setup-helm@v5
         with:
           version: latest
       - name: Run helm lint.
