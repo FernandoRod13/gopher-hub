@@ -38,7 +38,7 @@
         release_namespace: monitoring
         create_namespace: true
         values_files:
-          - ../k8s/helm/kube-prometheus-stack.values.yaml
+          - ../k8s/helm/kube-prometheus-stack/values.yaml
         state: present
         binary_path: /opt/homebrew/bin/helm
 
@@ -112,7 +112,7 @@
         chart_version: "{{ minecraft_version }}"
         release_namespace: minecraft
         create_namespace: true
-        values: "{{ lookup('file', '../k8s/helm/minecraft.values.yaml') | from_yaml }}"
+        values: "{{ lookup('file', '../k8s/helm/minecraft/values.yaml') | from_yaml }}"
         state: present
     - name: Install RCON Web Admin using Helm
       community.kubernetes.helm:
@@ -121,5 +121,5 @@
         chart_version: "{{ rcon_web_admin_version }}"
         release_namespace: minecraft
         create_namespace: true
-        values: "{{ lookup('file', '../k8s/helm/rcon-web.values.yaml') | from_yaml }}"
+        values: "{{ lookup('file', '../k8s/helm/rcon-web-admin/values.yaml') | from_yaml }}"
         state: present
