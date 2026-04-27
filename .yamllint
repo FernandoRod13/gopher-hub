@@ -3,9 +3,9 @@ extends: default
 
 ignore: |
   k8s/cilium/charts/
-  k8s/helm/kube-prometheus-stack.values.yaml
-  k8s/helm/minecraft.values.yaml
-  k8s/helm/rcon-web.values.yaml
+  k8s/helm/kube-prometheus-stack/values.yaml
+  k8s/helm/minecraft/values.yaml
+  k8s/helm/rcon-web-admin/values.yaml
   k8s/cilium/manifests/
   k8s/cilium/cilium.values.yaml
   monitoring.yml
