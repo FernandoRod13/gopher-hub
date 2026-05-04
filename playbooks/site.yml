@@ -117,8 +117,8 @@
     - name: Install RCON Web Admin using Helm
       community.kubernetes.helm:
         name: rcon-web
-        chart_ref: /Users/fernandorodriguez/Code/minecraft-server-charts/charts/rcon-web-admin
-        chart_version: "{{ rcon_web_admin_version }}"
+        chart_ref: itzg/rcon-web-admin
+        chart_version: "{{ (lookup('file', '../k8s/helm/rcon-web-admin/Chart.yaml') | from_yaml).version }}"
         release_namespace: minecraft
         create_namespace: true
         values: "{{ lookup('file', '../k8s/helm/rcon-web-admin/values.yaml') | from_yaml }}"

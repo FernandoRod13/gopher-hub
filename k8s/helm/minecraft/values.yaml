@@ -375,6 +375,8 @@ minecraftServer:
       embedded: false
       port: 9225
       type: ClusterIP
+    ingress:
+      enabled: false
 
     # These options allow you to expose another port from the Minecraft server, plugins such
     # as dynmap (8123) and bluemap (8100) will require this for access to their web interfaces
@@ -532,8 +534,7 @@ mcbackup:
   pruneResticRetention: "--keep-daily 7 --keep-weekly 5 --keep-monthly 12 --keep-yearly 75"
 
   # At least one of RESTIC_PASSWORD* env variables need to be defined, see https://restic.readthedocs.io/en/latest/030_preparing_a_new_repo.html
-  resticEnvs:
-    {}
+  resticEnvs: {}
     # RESTIC_PASSWORD: restic-password
 
   ## Additional minecraft container environment variables

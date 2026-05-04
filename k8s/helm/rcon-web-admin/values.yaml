@@ -16,8 +16,6 @@ rconWeb:
   rconPasswordExistingSecret: minecraft-rcon-creds
   rconPasswordKey: rcon-password
   isAdmin: true
-  websocketUrl: "ws://localhost:4327"
-  websocketUrlSsl: "wss://localhost:4327"
 
 persistence:
   enabled: false
