@@ -30,6 +30,16 @@
         force: true
       loop: "{{ k3s_service_files.files }}"
 
+    - name: Download K3s install script if missing
+      ansible.builtin.get_url:
+        url: https://get.k3s.io/
+        timeout: 120
+        dest: /usr/local/bin/k3s-install.sh
+        owner: root
+        group: root
+        mode: "0755"
+      when: not ansible_check_mode
+
     - name: Install new K3s Version
       ansible.builtin.command:
         cmd: /usr/local/bin/k3s-install.sh

@@ -34,11 +34,10 @@
       kubernetes.core.helm:
         name: kube-prometheus-stack
         chart_ref: prometheus-community/kube-prometheus-stack
-        chart_version: "{{ kube_prometheus_stack_version }}"
+        chart_version: "{{ (lookup('file', '../k8s/helm/kube-prometheus-stack/Chart.yaml') | from_yaml).version }}"
         release_namespace: monitoring
         create_namespace: true
-        values_files:
-          - ../k8s/helm/kube-prometheus-stack/values.yaml
+        values: "{{ lookup('file', '../k8s/helm/kube-prometheus-stack/values.yaml') | from_yaml }}"
         state: present
         binary_path: /opt/homebrew/bin/helm
 

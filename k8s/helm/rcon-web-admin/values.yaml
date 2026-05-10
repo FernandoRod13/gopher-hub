@@ -2,7 +2,7 @@ nameOverride: ""
 
 service:
   type: LoadBalancer
-  httpPort: 8080
+  httpPort: 80 
   wsPort: 4327
 
 rconWeb:
@@ -10,12 +10,14 @@ rconWeb:
   passwordExistingSecret: minecraft-rcon-creds
   passwordKey: web-admin-password
   game: minecraft
-  serverName: minecraft
-  rconHost: minecraft-rcon
+  serverName: minecraft-minecraft
+  rconHost: minecraft-minecraft-rcon
   rconPort: 25575
   rconPasswordExistingSecret: minecraft-rcon-creds
   rconPasswordKey: rcon-password
   isAdmin: true
+  websocketUrl: ""
+  websocketUrlSsl: ""
 
 persistence:
   enabled: false
