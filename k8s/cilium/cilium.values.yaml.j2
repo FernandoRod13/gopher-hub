@@ -3,6 +3,8 @@ ipam:
   operator:
     clusterPoolIPv4PodCIDRList: "10.42.0.0/16"
 kubeProxyReplacement: "true"
+bpf:
+  masquerade: true
 k8sServiceHost: {{ k8s_service_host }}
 k8sServicePort: 6443
 hostServices:
